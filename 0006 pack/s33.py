@@ -31,8 +31,6 @@ def print_table(stocks):
     
     #Add the data and append table header to the list
     rows.append('_____________________________')
-    rows.append('Welcome to the Stock Market')
-    rows.append('_____________________________')
     rows.append('Symbol\tPrice\tSecurity\tProfit')
     rows.append('-----------------------------')
     
@@ -44,7 +42,7 @@ def print_table(stocks):
     table_string = '\n'.join(rows)
     
     #Print the table
-    return str(table_string)
+    return str(table_string+"\n\n")
 
 
 #A dictionary to store usernames and passwords
@@ -76,18 +74,36 @@ def handle_client(client_socket):
                   client_socket.send("Bid another item".encode("utf-8"))
                   break
                 if input_data_1 in stocks:
-                  name = f"Current Bid is " +str(stocks[input_data_1]["Price"])+"\nBid another item"
+                  name = f"\n\nCurrent price of {input_data_1} is " +str(stocks[input_data_1]["Price"])+"\nEnter your bid\nType Back to change company\n\n"
                   client_socket.send(name.encode("utf-8"))
-                  
+                  recive_string = client_socket.recv(1024).decode("utf-8")
+                  try:
+                    bid = float(recive_string)
+                    if bid > stocks[input_data_1]["Price"]:
+                      stocks[input_data_1]["Price"] = bid
+                      biddone = f"\n\n        ***Bid Done*** \n\n{print_table(stocks)}\n"
+                      client_socket.send(biddone.encode("utf-8"))
+                    else:
+                      client_socket.send("Bid is to small...".encode("utf-8"))
+
+                  except ValueError:
+                    if recive_string == "Back" or recive_string == "exit":
+                      client_socket.send("okey".encode("utf-8"))
+                      if recive_string == "exit":
+                        break
+                    else:
+                      client_socket.send("Invalide Symbol".encode("utf-8"))
+                      
+        
                 else:
                   client_socket.send("Invalide Symbol".encode("utf-8"))
 
             elif recive_string == "exit":
-                break
+                break #logout
             else:
                 client_socket.send("Invalide Request".encode("utf-8"))
         
-      break
+      break #final exit
     else:
       client_socket.send("Enter the Correct Username and Password!!".encode("utf-8"))
   #Close the client socket

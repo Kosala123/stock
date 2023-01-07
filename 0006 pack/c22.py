@@ -30,11 +30,17 @@ user_input = ""
 while user_input != "exit":
   # Send user input to the server and receive the response
   if user_input == "Buy":
-    while user_input != "exit" and user_input != "Back":
+    while user_input != "exit" or user_input != "Back":
       user_input = input(">>>Buy>>>")
       client_socket.send(user_input.encode("utf-8"))
       response = client_socket.recv(1024).decode("utf-8")
       print(response)
+      if response[:9] == "\n\nCurrent":
+        line = f">>>Buy>>>{user_input}>>>"
+        user_input = input(line)
+        client_socket.send(user_input.encode("utf-8"))
+        response = client_socket.recv(1024).decode("utf-8")
+        print(response)
 
   user_input = input(">>>")
   client_socket.send(user_input.encode("utf-8"))
